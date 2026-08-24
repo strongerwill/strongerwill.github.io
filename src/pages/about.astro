@@ -1,0 +1,48 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { site } from "../site";
+---
+
+<BaseLayout title="About" current="about" description={`About ${site.author}.`}>
+  <div class="about-grid">
+    <section class="hero" style="margin-bottom: 0;">
+      <img class="avatar" src="/avatar.jpg" width="176" height="176" alt={site.author} />
+      <div>
+        <p class="kicker">About</p>
+        <h1>{site.author}</h1>
+        <p class="lede">{site.oneLiner}</p>
+      </div>
+    </section>
+
+    <article class="prose">
+      <p>
+        I work at the intersection of systems security, AI, and trust. For more than a decade I have
+        built and led security programs across cloud, automotive, and digital finance — from kernel
+        and confidential-computing research to product-scale software security.
+      </p>
+      <p>
+        I have led security engineering and research at OKX, headed product and software security at
+        NIO, led security research at Baidu USA, worked on Knox at Samsung Research America, and
+        completed a postdoc at Carnegie Mellon CyLab with Virgil Gligor and Adrian Perrig. I also
+        serve as an adjunct professor at the University of Delaware and hold a Ph.D. in
+        virtualization-based system security from Singapore Management University.
+      </p>
+      <p>
+        My work covers threat detection, confidential computing, microarchitecture security,
+        software supply-chain defenses, and AI security. I have published more than fifty papers and
+        hold dozens of granted patents. Black Hat and DEF CON talks are part of that same thread:
+        making attacks concrete so defenses can catch up.
+      </p>
+      <p>
+        This site is a public notebook for ideas at the boundary of security, trust, innovation, and
+        AI — including the occasional hypothesis that does not yet have a category.
+      </p>
+    </article>
+
+    <p class="links">
+      <a href={site.linkedin}>LinkedIn</a>
+      <a href={site.github}>GitHub</a>
+      <a href={site.scholar}>Google Scholar</a>
+    </p>
+  </div>
+</BaseLayout>

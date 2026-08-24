@@ -1,0 +1,33 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { render } from "astro:content";
+import { editUrl, formatLongDate, getPosts, getTopics, newPostUrl, topicMap } from "../../posts";
+
+export async function getStaticPaths() {
+  const posts = await getPosts();
+  return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
+}
+
+const { post } = Astro.props;
+const { Content } = await render(post);
+const topicsById = topicMap(await getTopics());
+---
+
+<BaseLayout title={post.data.title} description={post.data.description} current="blog">
+  <article class="prose">
+    <p class="kicker">
+      <time datetime={post.data.pubDate.toISOString()}>{formatLongDate(post.data.pubDate)}</time>
+      {post.data.topics.map((id) => {
+        const topic = topicsById.get(id);
+        return topic && <a href={`/blog/?topic=${id}`}> · {topic.data.name}</a>;
+      })}
+      {post.data.draft && " · draft"}
+    </p>
+    <h1>{post.data.title}</h1>
+    <Content />
+  </article>
+  <p class="post-actions">
+    <a href={editUrl(post)}>Edit this post</a>
+    <a href={newPostUrl}>Write a new post</a>
+  </p>
+</BaseLayout>

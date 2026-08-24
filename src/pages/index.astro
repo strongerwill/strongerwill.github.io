@@ -1,0 +1,45 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { formatDate, getPosts, getTopics, topicMap } from "../posts";
+import { site } from "../site";
+
+const latest = (await getPosts()).slice(0, 5);
+const topics = await getTopics();
+const topicsById = topicMap(topics);
+---
+
+<BaseLayout current="home">
+  <section class="hero">
+    <img class="avatar" src="/avatar.jpg" width="176" height="176" alt={site.author} />
+    <div>
+      <p class="kicker">{site.author}</p>
+      <h1>{site.oneLiner}</h1>
+      <p class="lede">A working notebook on systems, AI, and trust — written to think in public.</p>
+      <ul class="tags">
+        {topics.map((topic) => (
+          <li><a class="tag" href={`/blog/?topic=${topic.id}`}>{topic.data.name}</a></li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <p class="section-label">Latest posts</p>
+    <ol class="post-list">
+      {latest.map((post) => (
+        <li>
+          <p class="meta">
+            <time datetime={post.data.pubDate.toISOString()}>{formatDate(post.data.pubDate)}</time>
+            {post.data.topics.map((id) => {
+              const topic = topicsById.get(id);
+              return topic && <a href={`/blog/?topic=${id}`}> · {topic.data.name}</a>;
+            })}
+            {post.data.draft && " · draft"}
+          </p>
+          <a href={`/blog/${post.id}/`}><h2>{post.data.title}</h2></a>
+          <p class="excerpt">{post.data.description}</p>
+        </li>
+      ))}
+    </ol>
+  </section>
+</BaseLayout>

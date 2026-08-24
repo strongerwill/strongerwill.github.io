@@ -1,0 +1,107 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import {
+  formatDate,
+  getPosts,
+  getTopics,
+  newPostUrl,
+  newTopicUrl,
+  postsForTopic,
+  topicMap,
+} from "../../posts";
+
+const posts = await getPosts();
+const topics = await getTopics();
+const topicsById = topicMap(topics);
+---
+
+<BaseLayout title="Blog" current="blog" description="Essays on AI, security, trust, and innovation.">
+  <div class="blog-head">
+    <div>
+      <p class="kicker">Knowledge index</p>
+      <h1>Blog</h1>
+      <p class="lede">Browse by idea, follow a topic, or search the entire archive.</p>
+    </div>
+    <div class="manage-actions" aria-label="Author actions">
+      <span>Author</span>
+      <a href={newPostUrl}>New post</a>
+      <a href={newTopicUrl}>New topic</a>
+    </div>
+  </div>
+
+  <section class="topic-browser" aria-labelledby="browse-heading">
+    <div class="section-heading">
+      <p class="section-label" id="browse-heading">Browse by topic</p>
+      <a class="all-topics" href="/blog/" data-topic-filter="">All posts · {posts.length}</a>
+    </div>
+    <div class="topic-grid">
+      {topics.map((topic) => {
+        const count = postsForTopic(posts, topic.id).length;
+        return (
+          <a class="topic-card" href={`/blog/?topic=${topic.id}`} data-topic-filter={topic.id}>
+            <span class="topic-count">{count} {count === 1 ? "post" : "posts"}</span>
+            <h2>{topic.data.name}</h2>
+            <p>{topic.data.description}</p>
+          </a>
+        );
+      })}
+    </div>
+  </section>
+
+  <section class="archive" aria-labelledby="archive-heading">
+    <p class="section-label" id="archive-heading">Archive</p>
+    <div class="search-box">
+      <label for="post-search">Search the archive</label>
+      <input id="post-search" type="search" placeholder="Search titles, summaries, and topics…" autocomplete="off" />
+      <p id="search-status" aria-live="polite"></p>
+    </div>
+
+    <ol class="post-list" id="search-results">
+      {posts.map((post) => (
+        <li
+          data-search={`${post.data.title} ${post.data.description} ${post.data.topics
+            .map((id) => topicsById.get(id)?.data.name ?? id).join(" ")}`.toLowerCase()}
+          data-topics={post.data.topics.join(" ")}
+        >
+          <p class="meta">
+            <time datetime={post.data.pubDate.toISOString()}>{formatDate(post.data.pubDate)}</time>
+            {post.data.topics.map((id) => {
+              const topic = topicsById.get(id);
+              return topic && <a href={`/blog/?topic=${id}`}> · {topic.data.name}</a>;
+            })}
+            {post.data.draft && " · draft"}
+          </p>
+          <a href={`/blog/${post.id}/`}><h2>{post.data.title}</h2></a>
+          <p class="excerpt">{post.data.description}</p>
+        </li>
+      ))}
+    </ol>
+  </section>
+
+  <script>
+    const input = document.querySelector<HTMLInputElement>("#post-search");
+    const items = [...document.querySelectorAll<HTMLElement>("#search-results > li")];
+    const status = document.querySelector<HTMLElement>("#search-status");
+    const links = [...document.querySelectorAll<HTMLElement>("[data-topic-filter]")];
+    const activeTopic = new URLSearchParams(window.location.search).get("topic") ?? "";
+
+    for (const link of links) {
+      if (link.dataset.topicFilter === activeTopic) link.setAttribute("aria-current", "true");
+    }
+
+    function filterPosts() {
+      const query = input?.value.trim().toLowerCase() ?? "";
+      let visible = 0;
+      for (const item of items) {
+        const queryMatch = (item.dataset.search ?? "").includes(query);
+        const topicMatch = !activeTopic || (item.dataset.topics ?? "").split(" ").includes(activeTopic);
+        item.hidden = !(queryMatch && topicMatch);
+        if (queryMatch && topicMatch) visible += 1;
+      }
+      if (status) status.textContent = `${visible} ${visible === 1 ? "post" : "posts"}`;
+    }
+
+    input?.addEventListener("input", filterPosts);
+    filterPosts();
+  </script>
+</BaseLayout>
